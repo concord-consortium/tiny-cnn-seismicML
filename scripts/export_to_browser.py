@@ -41,7 +41,7 @@ def export_pytorch_to_onnx(model, output_path, model_name="seismic_cnn"):
     
     # Create dummy input matching the expected shape (batch_size, channels, samples)
     # For seismic data: 1 channel, 500 samples (5 seconds at 100 Hz)
-    dummy_input = torch.randn(1, 1, 500)
+    dummy_input = torch.randn(1, 3, 6000)
     
     # Export the model
     torch.onnx.export(
