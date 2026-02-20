@@ -136,10 +136,21 @@ def main(args):
     """Main inference function."""
     
     # Create classifier
+    # Select device: CUDA > MPS > CPU
+    if not args.cpu:
+        if torch.cuda.is_available():
+            device = 'cuda'
+        elif torch.backends.mps.is_available():
+            device = 'mps'
+        else:
+            device = 'cpu'
+    else:
+        device = 'cpu'
+    
     classifier = SeismicClassifier(
         model_path=args.model_path,
         config_path=args.config,
-        device='cuda' if torch.cuda.is_available() and not args.cpu else 'cpu'
+        device=device
     )
     
     # Example: Create dummy data for demonstration
