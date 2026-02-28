@@ -15,6 +15,9 @@ function ExplainerTab() {
         <p>
           In machine learning, a <GlossaryTerm termKey="classifier" onOpen={setGlossaryTerm}>classifier</GlossaryTerm> assigns a class label to a data point. For example, an image classifier produces a label (e.g. bird, plane) for what's in an image. A <GlossaryTerm termKey="cnn" onOpen={setGlossaryTerm}>convolutional neural network</GlossaryTerm>, or <GlossaryTerm termKey="cnn" onOpen={setGlossaryTerm}>CNN</GlossaryTerm>, is a type of classifier that excels at finding patterns in data.
         </p>
+        <figure className="copy-block-figure">
+          <img src="/images/cnn-patterns-diagram.png" alt="Diagram: CNN takes an input (e.g. image), processes it through layers to find patterns, and outputs a classification. Below: pipeline from Camera to Preprocessing to CNN to Postprocessing." />
+        </figure>
         <p>
           Here we use a CNN not for images but for <GlossaryTerm termKey="seismic waveforms" onOpen={setGlossaryTerm}>seismic waveforms</GlossaryTerm>: the network takes a 1D signal (ground motion over time) and classifies it as <GlossaryTerm termKey="classes" onOpen={setGlossaryTerm}>Noise</GlossaryTerm> or <GlossaryTerm termKey="classes" onOpen={setGlossaryTerm}>Earthquake</GlossaryTerm>. The same ideas—convolutions, layers, learned weights—apply; we just work with 1D time series instead of 2D images.
         </p>
@@ -70,7 +73,7 @@ function ExplainerTab() {
 
 
       <article className="copy-block">
-        <h2>Understanding hyperparameters</h2>
+        <h2>Understanding hyperparameters (INPROGRESS)</h2>
         <p>Hyperparameters are settings chosen before training (not learned from data). They shape the network and how it learns.</p>
         <p><strong>Kernel size</strong> — How many time samples each filter sees. In our Compact model: Conv1 uses size 7, Conv2 uses 5, Conv3 uses 3. Smaller kernels catch fine details; larger ones see broader patterns.</p>
         <p><strong>Stride</strong> — How many samples the kernel moves each step. Stride 1 keeps more detail; stride 2 (used in Conv1) halves the time length and speeds up the network.</p>
@@ -88,8 +91,8 @@ function App() {
   return (
     <main className="app">
       <header className="app-header">
-        <h1>Earthquake CNN Explainer</h1>
-        <p>Learn how a convolutional neural network tells earthquake signals from noise — for students.</p>
+        <h1>How a CNN detects Earthquakes</h1>
+        <p>Learn how convolutional neural networks are used to tell earthquakes from noise.</p>
         <nav className="tabs" aria-label="Main sections">
           <button type="button" className={`tab-btn ${tab === 'explainer' ? 'active' : ''}`} onClick={() => setTab('explainer')}>Explainer</button>
           <button type="button" className={`tab-btn ${tab === 'single' ? 'active' : ''}`} onClick={() => setTab('single')}>Single event</button>
@@ -105,7 +108,7 @@ function App() {
       )}
 
       <footer className="footer">
-        Same idea as <a href="https://poloclub.github.io/cnn-explainer/" target="_blank" rel="noopener noreferrer">CNN Explainer</a> (Polo Club), for 1D seismic signals. Built with React and D3.
+        Made by Derek Yao
       </footer>
     </main>
   );

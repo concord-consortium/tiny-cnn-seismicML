@@ -162,6 +162,18 @@ body {
   margin-bottom: 8px;
 }
 
+.copy-block-figure {
+  margin: 1rem 0;
+  max-width: 100%;
+}
+
+.copy-block-figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
 /* --- Glossary terms --- */
 .glossary-term {
   background: none;
