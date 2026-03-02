@@ -38,10 +38,6 @@ npm run build
 
 Output is in `dist/`. Test with `npm run preview` or deploy to any static host.
 
-## Deploy
-
-See **[DEPLOY.md](DEPLOY.md)** for Vercel, Netlify, and GitHub Pages. Use **Root directory** `explainer-app` (or equivalent) so the build runs from this folder.
-
 ## Stack
 
 - **React** + **Vite**
