@@ -1,11 +1,15 @@
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgpu';
-import { buildCompactModel, loadWeightsFromJson, preprocessWaveform, INPUT_LENGTH, SR } from './lib/seismicModel.js';
+import { buildCompactModel, buildStandardModel, loadWeightsFromJson, preprocessWaveform, INPUT_LENGTH, SR } from './lib/seismicModel.js';
 
 const MODELS = {
   compact: {
     build: (numClasses) => buildCompactModel(numClasses),
     weightsUrl: '/models/compact_weights.json',
+  },
+  standard: {
+    build: (numClasses) => buildStandardModel(numClasses),
+    weightsUrl: '/models/standard_weights.json',
   },
 };
 

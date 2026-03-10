@@ -60,39 +60,112 @@ export function buildCompactModel(numClasses = 2) {
 }
 
 /**
- * Load weights from our custom JSON (from export_compact_weights_for_tfjs.py).
- * Sets weights per layer via setWeights().
+ * Build the standard (larger) model. 4 conv blocks, up to 128 feature channels, two FC layers.
+ * Mirrors PyTorch SeismicCNN: ~94K params.
+ * Input: [batch, 6000, 1] (channelsLast).
+ * @param {number} numClasses 2 or 3
+ * @returns {tf.LayersModel}
+ */
+export function buildStandardModel(numClasses = 2) {
+  const model = tf.sequential({ name: 'StandardSeismicCNN' });
+
+  // Conv1: 1 → 32, k7, s2
+  model.add(tf.layers.conv1d({
+    filters: 32,
+    kernelSize: 7,
+    strides: 2,
+    padding: 'same',
+    inputShape: [INPUT_LENGTH, 1],
+    name: 'conv1',
+  }));
+  model.add(tf.layers.batchNormalization({ name: 'bn1' }));
+  model.add(tf.layers.activation({ activation: 'relu' }));
+  model.add(tf.layers.maxPooling1d({ poolSize: 2, strides: 2, name: 'pool1' }));
+
+  // Conv2: 32 → 64, k5, s1
+  model.add(tf.layers.conv1d({
+    filters: 64,
+    kernelSize: 5,
+    strides: 1,
+    padding: 'same',
+    name: 'conv2',
+  }));
+  model.add(tf.layers.batchNormalization({ name: 'bn2' }));
+  model.add(tf.layers.activation({ activation: 'relu' }));
+  model.add(tf.layers.maxPooling1d({ poolSize: 2, strides: 2, name: 'pool2' }));
+
+  // Conv3: 64 → 128, k3, s1
+  model.add(tf.layers.conv1d({
+    filters: 128,
+    kernelSize: 3,
+    strides: 1,
+    padding: 'same',
+    name: 'conv3',
+  }));
+  model.add(tf.layers.batchNormalization({ name: 'bn3' }));
+  model.add(tf.layers.activation({ activation: 'relu' }));
+  model.add(tf.layers.maxPooling1d({ poolSize: 2, strides: 2, name: 'pool3' }));
+
+  // Conv4: 128 → 128, k3, s1
+  model.add(tf.layers.conv1d({
+    filters: 128,
+    kernelSize: 3,
+    strides: 1,
+    padding: 'same',
+    name: 'conv4',
+  }));
+  model.add(tf.layers.batchNormalization({ name: 'bn4' }));
+  model.add(tf.layers.activation({ activation: 'relu' }));
+  model.add(tf.layers.maxPooling1d({ poolSize: 2, strides: 2, name: 'pool4' }));
+
+  // Global average pooling
+  model.add(tf.layers.globalAveragePooling1d({ name: 'global_pool' }));
+
+  // FC layers (no dropout in inference)
+  model.add(tf.layers.dense({ units: 64, activation: 'relu', name: 'fc1' }));
+  model.add(tf.layers.dense({ units: numClasses, name: 'fc2' }));
+
+  return model;
+}
+
+/**
+ * Load weights from a custom JSON file into a model.
+ * Works with both compact and standard architectures by matching layer names
+ * to keys in the JSON.
  * @param {tf.LayersModel} model
  * @param {Record<string, number[][]|number[]>} weightsJson
  */
 export function loadWeightsFromJson(model, weightsJson) {
-  const setConv = (layerName, kernelKey, biasKey) => {
+  const setLayer = (layerName) => {
     model.getLayer(layerName).setWeights([
-      tf.tensor(weightsJson[kernelKey]),
-      tf.tensor1d(weightsJson[biasKey]),
+      tf.tensor(weightsJson[`${layerName}/kernel`]),
+      tf.tensor1d(weightsJson[`${layerName}/bias`]),
     ]);
   };
 
-  const setBn = (layerName, prefix) => {
+  const setBn = (layerName) => {
     model.getLayer(layerName).setWeights([
-      tf.tensor1d(weightsJson[`${prefix}/gamma`]),
-      tf.tensor1d(weightsJson[`${prefix}/beta`]),
-      tf.tensor1d(weightsJson[`${prefix}/moving_mean`]),
-      tf.tensor1d(weightsJson[`${prefix}/moving_variance`]),
+      tf.tensor1d(weightsJson[`${layerName}/gamma`]),
+      tf.tensor1d(weightsJson[`${layerName}/beta`]),
+      tf.tensor1d(weightsJson[`${layerName}/moving_mean`]),
+      tf.tensor1d(weightsJson[`${layerName}/moving_variance`]),
     ]);
   };
 
-  setConv('conv1', 'conv1/kernel', 'conv1/bias');
-  setBn('bn1', 'bn1');
-  setConv('conv2', 'conv2/kernel', 'conv2/bias');
-  setBn('bn2', 'bn2');
-  setConv('conv3', 'conv3/kernel', 'conv3/bias');
-  setBn('bn3', 'bn3');
+  // Load conv + bn pairs that exist in the weights JSON
+  for (const name of ['conv1', 'conv2', 'conv3', 'conv4']) {
+    if (`${name}/kernel` in weightsJson) {
+      setLayer(name);
+      setBn(name.replace('conv', 'bn'));
+    }
+  }
 
-  model.getLayer('fc').setWeights([
-    tf.tensor(weightsJson['fc/kernel']),
-    tf.tensor1d(weightsJson['fc/bias']),
-  ]);
+  // Load FC layers — compact uses 'fc', standard uses 'fc1' + 'fc2'
+  for (const name of ['fc', 'fc1', 'fc2']) {
+    if (`${name}/kernel` in weightsJson) {
+      setLayer(name);
+    }
+  }
 }
 
 /**
