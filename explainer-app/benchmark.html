@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seismic CNN Benchmark</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #f5f5f5;
+      padding: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 { margin-bottom: 8px; }
+    .subtitle { color: #666; margin-bottom: 24px; }
+
+    .controls {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 24px;
+    }
+    .control-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .control-row:last-child { margin-bottom: 0; }
+    label { font-weight: 500; min-width: 100px; }
+    select, input[type="number"] {
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    input[type="number"] { width: 80px; }
+
+    button {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #runBtn {
+      background: #2563eb;
+      color: white;
+    }
+    #runBtn:hover:not(:disabled) { background: #1d4ed8; }
+
+    #status {
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      display: none;
+    }
+    #status.info { display: block; background: #dbeafe; color: #1e40af; }
+    #status.error { display: block; background: #fee2e2; color: #991b1b; }
+    #status.success { display: block; background: #dcfce7; color: #166534; }
+
+    .results {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      display: none;
+    }
+    .results.visible { display: block; }
+    .results h2 { margin-bottom: 16px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+    }
+    th { font-weight: 600; color: #374151; background: #f9fafb; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .backend-support {
+      font-size: 13px;
+      color: #666;
+      margin-top: 8px;
+    }
+    .backend-support span {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      margin-right: 6px;
+      margin-bottom: 4px;
+    }
+    .supported { background: #dcfce7; color: #166534; }
+    .unsupported { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <h1>Seismic CNN Benchmark</h1>
+  <p class="subtitle">Measure how fast a model can process a stream of seismic data across TF.js backends</p>
+
+  <div id="backendSupport" class="backend-support"></div>
+
+  <div class="controls">
+    <div class="control-row">
+      <label for="modelSelect">Model:</label>
+      <select id="modelSelect">
+        <option value="compact">Compact (~20K params)</option>
+      </select>
+    </div>
+    <div class="control-row">
+      <label for="backendSelect">Backend:</label>
+      <select id="backendSelect">
+        <option value="webgl">WebGL (GPU)</option>
+        <option value="webgpu">WebGPU (GPU)</option>
+        <option value="cpu">CPU (JavaScript)</option>
+      </select>
+    </div>
+    <div class="control-row">
+      <label for="streamMinutes">Stream length:</label>
+      <input type="number" id="streamMinutes" value="10" min="1" max="1440" step="1" />
+      <span style="color:#666; font-size:14px">minutes</span>
+    </div>
+    <div class="control-row">
+      <button id="runBtn">Run Benchmark</button>
+    </div>
+    <div id="status"></div>
+  </div>
+
+  <div id="results" class="results">
+    <h2>Results</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th style="text-align:right">Value</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
+  </div>
+
+  <script type="module" src="/src/benchmark.js"></script>
+</body>
+</html>

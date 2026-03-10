@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^4.22.0",
+    "@tensorflow/tfjs-backend-webgpu": "^4.22.0",
     "d3": "^7.9.0",
     "leaflet": "^1.9.4",
     "react": "^19.2.0",
