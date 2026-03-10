@@ -9,6 +9,9 @@ lerna-debug.log*
 
 node_modules
 dist
+
+# Generated dummy weights for benchmarking (regenerate with scripts/generate_dummy_weights.py)
+public/models/standard_weights.json
 dist-ssr
 *.local
 
