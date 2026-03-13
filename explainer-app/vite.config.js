@@ -21,6 +21,7 @@ function getHttpsConfig() {
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: './',
   plugins: [react()],
   server: {
     https: getHttpsConfig(),
