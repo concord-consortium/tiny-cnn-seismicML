@@ -32,13 +32,14 @@
     }
     .control-row:last-child { margin-bottom: 0; }
     label { font-weight: 500; min-width: 100px; }
-    select, input[type="number"] {
+    select, input[type="number"], input[type="text"] {
       padding: 6px 10px;
       border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 14px;
     }
     input[type="number"] { width: 80px; }
+    input[type="text"] { width: 200px; }
 
     button {
       padding: 10px 24px;
@@ -89,6 +90,7 @@
     }
     th { font-weight: 600; color: #374151; background: #f9fafb; }
     td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    td.wrap { word-break: break-word; font-size: 12px; max-width: 500px; }
 
     .backend-support {
       font-size: 13px;
@@ -114,6 +116,26 @@
 
   <div class="controls">
     <div class="control-row">
+      <label for="userName">User name:</label>
+      <input type="text" id="userName" placeholder="Your name" />
+    </div>
+    <div class="control-row">
+      <label for="machineLabel">Machine label:</label>
+      <input type="text" id="machineLabel" placeholder="e.g. Office desktop, Living room laptop" />
+    </div>
+    <div class="control-row">
+      <label for="osSelect">OS:</label>
+      <select id="osSelect">
+        <option value="Mac">Mac</option>
+        <option value="Windows">Windows</option>
+        <option value="Linux">Linux</option>
+        <option value="ChromeOS">ChromeOS</option>
+        <option value="iOS">iOS</option>
+        <option value="Android">Android</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="control-row">
       <label for="modelSelect">Model:</label>
       <select id="modelSelect">
         <option value="compact">Compact (~9K params, 3 conv blocks)</option>
@@ -130,8 +152,12 @@
     </div>
     <div class="control-row">
       <label for="streamMinutes">Stream length:</label>
-      <input type="number" id="streamMinutes" value="10" min="1" max="1440" step="1" />
-      <span style="color:#666; font-size:14px">minutes</span>
+      <select id="streamMinutes">
+        <option value="60">1 hour</option>
+        <option value="1440">24 hours</option>
+        <option value="10080">7 days</option>
+        <option value="43200">30 days</option>
+      </select>
     </div>
     <div class="control-row">
       <button id="runBtn">Run Benchmark</button>
