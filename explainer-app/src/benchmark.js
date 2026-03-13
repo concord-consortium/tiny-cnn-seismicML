@@ -5,11 +5,11 @@ import { buildCompactModel, buildStandardModel, loadWeightsFromJson, preprocessW
 const MODELS = {
   compact: {
     build: (numClasses) => buildCompactModel(numClasses),
-    weightsUrl: '/models/compact_weights.json',
+    weightsUrl: './models/compact_weights.json',
   },
   standard: {
     build: (numClasses) => buildStandardModel(numClasses),
-    weightsUrl: '/models/standard_weights.json',
+    weightsUrl: './models/standard_weights.json',
   },
 };
 
