@@ -6,7 +6,7 @@ import {
   getActivationsAtSteps as getActivations,
 } from '../lib/seismicModel';
 
-const WEIGHTS_URL = '/models/compact_weights.json';
+const WEIGHTS_URL = './models/compact_weights.json';
 
 /**
  * Load the compact CNN and expose predict. Class names follow num_classes in weights (2 = Noise, Earthquake).

@@ -5,7 +5,7 @@ export function useWaveformData() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('/waveforms.json')
+    fetch('./waveforms.json')
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error('Failed to load'))))
       .then(setData)
       .catch(setError);

@@ -13,6 +13,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
+      - name: Generate standard dummy weights
+        run: pip install numpy && python scripts/generate_dummy_weights.py --model standard
       - name: Install Dependencies
         working-directory: explainer-app
         run: npm ci
