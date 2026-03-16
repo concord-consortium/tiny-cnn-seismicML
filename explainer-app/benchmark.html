@@ -56,6 +56,24 @@
       color: white;
     }
     #runBtn:hover:not(:disabled) { background: #1d4ed8; }
+    #autoBtn {
+      background: #059669;
+      color: white;
+    }
+    #autoBtn:hover:not(:disabled) { background: #047857; }
+
+    details {
+      margin-top: 16px;
+      border-top: 1px solid #eee;
+      padding-top: 12px;
+    }
+    details summary {
+      cursor: pointer;
+      font-weight: 500;
+      color: #555;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
 
     #status {
       margin-top: 12px;
@@ -74,6 +92,7 @@
       border-radius: 8px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       display: none;
+      margin-bottom: 24px;
     }
     .results.visible { display: block; }
     .results h2 { margin-bottom: 16px; }
@@ -91,6 +110,12 @@
     th { font-weight: 600; color: #374151; background: #f9fafb; }
     td.num { text-align: right; font-variant-numeric: tabular-nums; }
     td.wrap { word-break: break-word; font-size: 12px; max-width: 500px; }
+
+    #systemInfo td:first-child { font-weight: 500; color: #374151; }
+
+    #runsTable th:first-child { text-align: left; }
+    #runsTable th:not(:first-child) { text-align: right; }
+    #runsTable td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
 
     .backend-support {
       font-size: 13px;
@@ -110,7 +135,7 @@
 </head>
 <body>
   <h1>Seismic CNN Benchmark</h1>
-  <p class="subtitle">Measure how fast a model can process a stream of seismic data across TF.js backends</p>
+  <p class="subtitle">Measure how fast a model can process a stream of seismic data across TF.js backends. Results are automatically added to a shared Google Spreadsheet.</p>
 
   <div id="backendSupport" class="backend-support"></div>
 
@@ -136,45 +161,53 @@
       </select>
     </div>
     <div class="control-row">
-      <label for="modelSelect">Model:</label>
-      <select id="modelSelect">
-        <option value="compact">Compact (~9K params, 3 conv blocks)</option>
-        <option value="standard">Standard (~94K params, 4 conv blocks)</option>
-      </select>
+      <button id="autoBtn">Auto Benchmark</button>
     </div>
-    <div class="control-row">
-      <label for="backendSelect">Backend:</label>
-      <select id="backendSelect">
-        <option value="webgl">WebGL (GPU)</option>
-        <option value="webgpu">WebGPU (GPU)</option>
-        <option value="cpu">CPU (JavaScript)</option>
-      </select>
-    </div>
-    <div class="control-row">
-      <label for="streamMinutes">Stream length:</label>
-      <select id="streamMinutes">
-        <option value="60">1 hour</option>
-        <option value="1440">24 hours</option>
-        <option value="10080">7 days</option>
-        <option value="43200">30 days</option>
-      </select>
-    </div>
-    <div class="control-row">
-      <button id="runBtn">Run Benchmark</button>
-    </div>
+
+    <details id="advancedSection">
+      <summary>Advanced</summary>
+      <div class="control-row">
+        <label for="modelSelect">Model:</label>
+        <select id="modelSelect">
+          <option value="compact">Compact (~9K params, 3 conv blocks)</option>
+          <option value="standard" selected>Standard (~94K params, 4 conv blocks)</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <label for="backendSelect">Backend:</label>
+        <select id="backendSelect">
+          <option value="webgl">WebGL (GPU)</option>
+          <option value="webgpu" selected>WebGPU (GPU)</option>
+          <option value="cpu">CPU (JavaScript)</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <label for="streamMinutes">Stream length:</label>
+        <select id="streamMinutes">
+          <option value="60">1 hour</option>
+          <option value="1440" selected>24 hours</option>
+          <option value="10080">7 days</option>
+          <option value="43200">30 days</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <button id="runBtn">Run Benchmark</button>
+      </div>
+    </details>
+
     <div id="status"></div>
   </div>
 
   <div id="results" class="results">
-    <h2>Results</h2>
+    <h2>System</h2>
     <table>
-      <thead>
-        <tr>
-          <th>Metric</th>
-          <th style="text-align:right">Value</th>
-        </tr>
-      </thead>
-      <tbody id="resultsBody"></tbody>
+      <tbody id="systemInfo"></tbody>
+    </table>
+
+    <h2 style="margin-top: 24px;">Runs</h2>
+    <table id="runsTable">
+      <thead id="runsHead"></thead>
+      <tbody id="runsBody"></tbody>
     </table>
   </div>
 
