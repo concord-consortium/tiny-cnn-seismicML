@@ -20,8 +20,14 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyr1ytD2z-U0oFe
 
 const statusEl = document.getElementById('status');
 const runBtn = document.getElementById('runBtn');
+const autoBtn = document.getElementById('autoBtn');
 const resultsEl = document.getElementById('results');
-const resultsBody = document.getElementById('resultsBody');
+const systemInfoEl = document.getElementById('systemInfo');
+const runsHeadEl = document.getElementById('runsHead');
+const runsBodyEl = document.getElementById('runsBody');
+
+// Accumulated run results for the multi-column table
+const benchmarkRuns = [];
 
 function setStatus(msg, type = 'info') {
   statusEl.textContent = msg;
@@ -213,34 +219,52 @@ async function runStreamBenchmark(model, numWindows) {
   return { genMs, prepMs, inferMs, totalMs: prepMs + inferMs };
 }
 
-function displayStreamResults(backendName, modelName, loadTimeMs, numWindows, streamDurationSec, results, systemMeta) {
-  const { genMs, prepMs, inferMs, totalMs } = results;
-
+function displaySystemInfo(systemMeta) {
   const rows = [
-    ['Backend', backendName],
-    ['Model', modelName],
     ['TF.js version', tf.version.tfjs],
     ['GPU', systemMeta.gpuRenderer || 'unknown'],
     ['CPU cores', systemMeta.cpuCores || 'unknown'],
     ...(systemMeta.deviceMemoryGB ? [['Device memory', `~${systemMeta.deviceMemoryGB} GB`]] : []),
     ['User agent', systemMeta.userAgent],
-    ['Model load time', `${loadTimeMs.toFixed(1)} ms`],
-    ['', ''],
-    ['Stream duration', `${streamDurationSec} sec (${numWindows} x ${WINDOW_SECONDS}s windows)`],
-    ['Data generation (not benchmarked)', `${genMs.toFixed(1)} ms`],
-    ['Preprocessing', `${prepMs.toFixed(1)} ms`],
-    ['Inference', `${inferMs.toFixed(1)} ms`],
-    ['Total (prep + inference)', `${totalMs.toFixed(1)} ms`],
-    ['Realtime ratio', `${(streamDurationSec * 1000 / totalMs).toFixed(1)}x realtime`],
   ];
 
-  resultsBody.innerHTML = rows.map(([label, value]) => {
-    if (label === '' && value === '') {
-      return '<tr><td colspan="2" style="border:none; height:8px"></td></tr>';
-    }
-    const tdClass = String(value).length > 60 ? 'wrap' : 'num';
+  systemInfoEl.innerHTML = rows.map(([label, value]) => {
+    const tdClass = String(value).length > 60 ? 'wrap' : '';
     return `<tr><td>${label}</td><td class="${tdClass}">${value}</td></tr>`;
   }).join('');
+}
+
+function displayRuns() {
+  const runCount = benchmarkRuns.length;
+
+  // Header: Metric | Run 1 | Run 2 | ...
+  const headerCells = ['<th>Metric</th>'];
+  for (let i = 0; i < runCount; i++) {
+    headerCells.push(`<th>Run ${i + 1}</th>`);
+  }
+  runsHeadEl.innerHTML = `<tr>${headerCells.join('')}</tr>`;
+
+  // Row definitions — each row pulls a value from every run
+  const rowDefs = [
+    ['Backend', r => r.backendName],
+    ['Model', r => r.modelName],
+    ['Stream duration', r => `${formatDuration(r.streamDurationSec)} (${r.numWindows} windows)`],
+    ['Model load time', r => `${r.loadTimeMs.toFixed(1)} ms`],
+    ['Data generation (not timed)', r => `${r.results.genMs.toFixed(1)} ms`],
+    ['Preprocessing', r => `${r.results.prepMs.toFixed(1)} ms`],
+    ['Inference', r => `${r.results.inferMs.toFixed(1)} ms`],
+    ['Total (prep + inference)', r => `${r.results.totalMs.toFixed(1)} ms`],
+    ['Realtime ratio', r => `${(r.streamDurationSec * 1000 / r.results.totalMs).toFixed(1)}x`],
+  ];
+
+  runsBodyEl.innerHTML = rowDefs.map(([label, fn]) => {
+    const cells = [`<td>${label}</td>`];
+    for (const run of benchmarkRuns) {
+      cells.push(`<td>${fn(run)}</td>`);
+    }
+    return `<tr>${cells.join('')}</tr>`;
+  }).join('');
+
   resultsEl.classList.add('visible');
 }
 
@@ -263,68 +287,135 @@ async function submitToSheet(payload) {
   }
 }
 
+/**
+ * Run a single benchmark with the given parameters, display results, and submit to sheet.
+ * Returns the results object so callers can inspect timing.
+ */
+async function runSingleBenchmark(modelKey, backendName, streamDurationSec) {
+  const modelConfig = MODELS[modelKey];
+  if (!modelConfig) {
+    throw new Error(`Unknown model: ${modelKey}`);
+  }
+
+  const numWindows = Math.ceil(streamDurationSec / WINDOW_SECONDS);
+
+  const { model, loadTimeMs } = await loadModel(modelConfig, backendName);
+  setStatus(`Model loaded in ${loadTimeMs.toFixed(0)} ms.`);
+
+  const results = await runStreamBenchmark(model, numWindows);
+  model.dispose();
+
+  const systemMeta = collectSystemMetadata();
+  displaySystemInfo(systemMeta);
+  benchmarkRuns.push({ backendName, modelName: modelKey, loadTimeMs, numWindows, streamDurationSec, results });
+  displayRuns();
+
+  const realtimeRatio = streamDurationSec * 1000 / results.totalMs;
+  await submitToSheet({
+    userName: document.getElementById('userName').value,
+    machineLabel: document.getElementById('machineLabel').value,
+    os: document.getElementById('osSelect').value,
+    backend: backendName,
+    model: modelKey,
+    tfjsVersion: tf.version.tfjs,
+    gpuRenderer: systemMeta.gpuRenderer || '',
+    gpuVendor: systemMeta.gpuVendor || '',
+    cpuCores: systemMeta.cpuCores || '',
+    deviceMemoryGB: systemMeta.deviceMemoryGB || '',
+    userAgent: systemMeta.userAgent,
+    platform: systemMeta.platform,
+    screenWidth: systemMeta.screenWidth,
+    screenHeight: systemMeta.screenHeight,
+    devicePixelRatio: systemMeta.devicePixelRatio,
+    windowSeconds: WINDOW_SECONDS,
+    streamDurationSec,
+    numWindows,
+    modelLoadMs: parseFloat(loadTimeMs.toFixed(1)),
+    preprocessingMs: parseFloat(results.prepMs.toFixed(1)),
+    inferenceMs: parseFloat(results.inferMs.toFixed(1)),
+    totalMs: parseFloat(results.totalMs.toFixed(1)),
+    realtimeRatio: parseFloat(realtimeRatio.toFixed(1)),
+    dataGenerationMs: parseFloat(results.genMs.toFixed(1)),
+  });
+
+  return results;
+}
+
 async function runBenchmark() {
   const modelKey = document.getElementById('modelSelect').value;
   const backendName = document.getElementById('backendSelect').value;
   const streamMinutes = parseInt(document.getElementById('streamMinutes').value, 10);
-
-  const modelConfig = MODELS[modelKey];
-  if (!modelConfig) {
-    setStatus(`Unknown model: ${modelKey}`, 'error');
-    return;
-  }
-
   const streamDurationSec = streamMinutes * 60;
-  const numWindows = Math.ceil(streamDurationSec / WINDOW_SECONDS);
 
   runBtn.disabled = true;
+  autoBtn.disabled = true;
   resultsEl.classList.remove('visible');
 
   try {
-    const { model, loadTimeMs } = await loadModel(modelConfig, backendName);
-    setStatus(`Model loaded in ${loadTimeMs.toFixed(0)} ms.`);
-
-    const results = await runStreamBenchmark(model, numWindows);
-    model.dispose();
-
-    const systemMeta = collectSystemMetadata();
-    displayStreamResults(backendName, modelKey, loadTimeMs, numWindows, streamDurationSec, results, systemMeta);
-
-    const realtimeRatio = streamDurationSec * 1000 / results.totalMs;
-    await submitToSheet({
-      userName: document.getElementById('userName').value,
-      machineLabel: document.getElementById('machineLabel').value,
-      os: document.getElementById('osSelect').value,
-      backend: backendName,
-      model: modelKey,
-      tfjsVersion: tf.version.tfjs,
-      gpuRenderer: systemMeta.gpuRenderer || '',
-      gpuVendor: systemMeta.gpuVendor || '',
-      cpuCores: systemMeta.cpuCores || '',
-      deviceMemoryGB: systemMeta.deviceMemoryGB || '',
-      userAgent: systemMeta.userAgent,
-      platform: systemMeta.platform,
-      screenWidth: systemMeta.screenWidth,
-      screenHeight: systemMeta.screenHeight,
-      devicePixelRatio: systemMeta.devicePixelRatio,
-      windowSeconds: WINDOW_SECONDS,
-      streamDurationSec,
-      numWindows,
-      modelLoadMs: parseFloat(loadTimeMs.toFixed(1)),
-      preprocessingMs: parseFloat(results.prepMs.toFixed(1)),
-      inferenceMs: parseFloat(results.inferMs.toFixed(1)),
-      totalMs: parseFloat(results.totalMs.toFixed(1)),
-      realtimeRatio: parseFloat(realtimeRatio.toFixed(1)),
-      dataGenerationMs: parseFloat(results.genMs.toFixed(1)),
-    });
-
+    await runSingleBenchmark(modelKey, backendName, streamDurationSec);
     setStatus('Benchmark complete.', 'success');
   } catch (err) {
     setStatus(`Error: ${err.message}`, 'error');
     console.error(err);
   } finally {
     runBtn.disabled = false;
+    autoBtn.disabled = false;
   }
+}
+
+async function runAutoBenchmark() {
+  runBtn.disabled = true;
+  autoBtn.disabled = true;
+  resultsEl.classList.remove('visible');
+
+  try {
+    // Determine the best available GPU backend, or fall back to CPU
+    const backendResults = await detectBackends();
+    const hasWebGPU = backendResults.find(b => b.name === 'webgpu')?.available;
+    const hasWebGL = backendResults.find(b => b.name === 'webgl')?.available;
+
+    let backend;
+    let durations;
+
+    if (hasWebGPU) {
+      backend = 'webgpu';
+      durations = [24 * 3600]; // start with 24 hours
+    } else if (hasWebGL) {
+      backend = 'webgl';
+      durations = [24 * 3600]; // start with 24 hours
+    } else {
+      backend = 'cpu';
+      durations = [3600]; // 1 hour only
+    }
+
+    setStatus(`Auto benchmark: using ${backend} backend...`, 'info');
+
+    // Run first test
+    const firstDuration = durations[0];
+    setStatus(`Auto benchmark: ${backend} / standard / ${formatDuration(firstDuration)}...`, 'info');
+    const results = await runSingleBenchmark('standard', backend, firstDuration);
+
+    // If GPU backend and 24h completed in under 5 seconds, also run 7 days
+    if (backend !== 'cpu' && results.totalMs < 5000) {
+      const sevenDays = 7 * 24 * 3600;
+      setStatus(`Auto benchmark: fast result (${results.totalMs.toFixed(0)} ms), now testing ${backend} / standard / 7 days...`, 'info');
+      await runSingleBenchmark('standard', backend, sevenDays);
+    }
+
+    setStatus('Auto benchmark complete.', 'success');
+  } catch (err) {
+    setStatus(`Error: ${err.message}`, 'error');
+    console.error(err);
+  } finally {
+    runBtn.disabled = false;
+    autoBtn.disabled = false;
+  }
+}
+
+function formatDuration(seconds) {
+  if (seconds >= 86400) return `${seconds / 86400} days`;
+  if (seconds >= 3600) return `${seconds / 3600} hours`;
+  return `${seconds / 60} minutes`;
 }
 
 // Persist user fields to localStorage
@@ -346,3 +437,4 @@ for (const id of STORED_FIELDS) {
 // Init
 detectBackends();
 runBtn.addEventListener('click', runBenchmark);
+autoBtn.addEventListener('click', runAutoBenchmark);
