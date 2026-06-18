@@ -19,6 +19,7 @@ pandas>=2.0.0
 # Utilities
 pyyaml>=6.0
 tqdm>=4.65.0
+jsonschema>=4.0.0
 
 # Jupyter (optional, for notebooks)
 # jupyter>=1.0.0
