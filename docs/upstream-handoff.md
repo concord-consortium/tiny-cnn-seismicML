@@ -13,25 +13,17 @@ git fetch derek
 ## 2. Bring in the explainer app (Derek's version)
 
 Take the `explainer-app/` directory and `scripts/export_waveforms_for_explainer.py`
-from `derek/main`.
-
-**Exclude the benchmark** — these files point at a Concord-owned Google Sheet and
-should not live in the lab repo:
-
-- `explainer-app/benchmark.html`
-- `explainer-app/src/benchmark.js`
-- `explainer-app/benchmark.md`
-- `explainer-app/apps-script/Code.gs`
+from `derek/main`:
 
 ```bash
 git checkout derek/main -- explainer-app scripts/export_waveforms_for_explainer.py
-git rm -r --cached explainer-app/apps-script explainer-app/benchmark.html \
-  explainer-app/benchmark.md explainer-app/src/benchmark.js 2>/dev/null || true
-rm -rf explainer-app/apps-script explainer-app/benchmark.html \
-  explainer-app/benchmark.md explainer-app/src/benchmark.js
 ```
 
-(Also drop the `benchmark` rollup input from `explainer-app/vite.config.js` if present.)
+Note: Derek's explainer app does **not** include the benchmark. The benchmark files
+(`benchmark.html`, `src/benchmark.js`, `benchmark.md`, `apps-script/Code.gs`) and the
+`benchmark` rollup input in `vite.config.js` are Concord's additions — they upload to
+a Concord-owned Google Sheet and live only in the Concord fork. `derek/main`'s
+`explainer-app/` is already benchmark-free, so there is nothing to exclude here.
 
 ## 3. Update training notebooks to Derek's newer versions
 
