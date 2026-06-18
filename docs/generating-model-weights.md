@@ -54,3 +54,26 @@ Concord deploys the folder to S3 for CLUE with `scripts/deploy-model.sh`; see
 infrastructure (the `models-resources` S3 bucket) and is specific to Concord's
 deployment. Steps 1–3 (train → export → assemble) are general and apply to anyone
 producing a model in this format.
+
+## Using a different architecture
+
+The `architecture` field in `metadata.json` is a free-form string in the schema, but
+the consuming application maps it to a build function at runtime. CLUE keeps a
+registry (`ARCHITECTURES` in `shared/seismic/seismic-architectures.ts`) — currently
+`compact` and `standard` (plus `placeholder` for testing). A model whose
+`architecture` is not in the registry fails to load with an `Unknown architecture`
+error.
+
+- **Reusing `compact` or `standard`:** just set the field — no application changes are
+  needed — and use the matching exporter (`export_compact_weights_for_tfjs.py` for
+  `compact`).
+- **A genuinely new architecture** requires three pieces that must agree:
+  1. A TF.js build function added and registered in CLUE's `ARCHITECTURES` map,
+     mirroring the trained model's layers.
+  2. An exporter that writes `weights.json` with layer names matching that build
+     function — weights are loaded by name. Copy `export_compact_weights_for_tfjs.py`
+     as the pattern for a new architecture.
+  3. The PyTorch training code that produces the new model.
+
+See CLUE's [ML model integration design](https://github.com/concord-consortium/collaborative-learning/blob/master/docs/seismic/ml-model-integration-design.md)
+for how architectures are registered and consumed.

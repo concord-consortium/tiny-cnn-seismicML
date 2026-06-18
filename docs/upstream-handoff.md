@@ -36,8 +36,9 @@ Confirm with Derek that these are the intended current versions before merging.
 
 ## 4. Model-weights pattern (contributed separately by Concord)
 
-So the lab can produce its own deployable models, Concord will open a separate PR
-adding the model-weights pattern:
+So the lab can produce its own deployable models, Concord has opened
+[PR #6](https://github.com/Denolle-Lab/tiny-cnn-seismicML/pull/6) adding the
+model-weights pattern:
 
 - `docs/generating-model-weights.md` — the train → export → assemble workflow (uses
   `export_compact_weights_for_tfjs.py`, which arrives with the explainer app in step 2).
@@ -50,13 +51,3 @@ this Concord PR. Concord's S3 deploy tooling (`scripts/deploy-model.sh`,
 it is Concord infrastructure. Note that `models/compact-v1/metadata.json` references a
 CLUE-specific `$schema`; adjust or generalize it if the lab's models are not consumed
 by CLUE.
-
-## 5. Review and open PR(s)
-
-Commit on a branch and open one or more PRs for review. Concord can assist with the
-explainer-app PR if helpful.
-
-## After adoption
-
-Concord will sync by merging `upstream/main` into its fork's `main`; the explainer app
-then comes from upstream and no longer appears as a Concord-specific change.
