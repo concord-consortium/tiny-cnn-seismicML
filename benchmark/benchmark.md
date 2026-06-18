@@ -94,10 +94,10 @@ Then open http://localhost:5173/ (port may vary).
 
 ## Architecture notes
 
-The benchmark is a separate Vite entry point (`benchmark.html` + `src/benchmark.js`)
+The benchmark is a standalone single-page Vite app (`index.html` + `src/benchmark.js`)
 that imports model builders and preprocessing from `src/lib/seismicModel.js`. It does
-not use React — just plain JS and DOM manipulation. The Vite config uses multi-page
-mode (`build.rollupOptions.input`) to include both the main React app and the benchmark.
+not use React — just plain JS and DOM manipulation. The Vite config has a single entry
+(`index.html`) and uses `base: './'` so the built app works from any S3 subdirectory.
 
 ### Weight loading
 
