@@ -19,12 +19,6 @@ from `derek/main`:
 git checkout derek/main -- explainer-app scripts/export_waveforms_for_explainer.py
 ```
 
-Note: Derek's explainer app does **not** include the benchmark. The benchmark files
-(`benchmark.html`, `src/benchmark.js`, `benchmark.md`, `apps-script/Code.gs`) and the
-`benchmark` rollup input in `vite.config.js` are Concord's additions — they upload to
-a Concord-owned Google Sheet and live only in the Concord fork. `derek/main`'s
-`explainer-app/` is already benchmark-free, so there is nothing to exclude here.
-
 ## 3. Update training notebooks to Derek's newer versions
 
 ```bash
