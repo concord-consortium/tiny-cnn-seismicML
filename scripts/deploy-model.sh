@@ -46,16 +46,7 @@ if ! curl -sf "$SCHEMA_URL" -o "$SCHEMA_FILE"; then
     echo "Error: Could not download schema from ${SCHEMA_URL}"
     exit 1
 fi
-NODE_PATH=explainer-app/node_modules node -e "
-const fs = require('fs');
-const Ajv = require('ajv');
-const schema = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
-const data = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-const ajv = new Ajv();
-const valid = ajv.validate(schema, data);
-if (!valid) { console.error('Schema validation failed:'); console.error(JSON.stringify(ajv.errors, null, 2)); process.exit(1); }
-console.log('Schema validation passed.');
-" "$SCHEMA_FILE" "$METADATA_FILE"
+python3 scripts/validate-metadata.py "$SCHEMA_FILE" "$METADATA_FILE"
 
 # Check that the model doesn't already exist in S3
 if aws s3 ls "${S3_PREFIX}/metadata.json" > /dev/null 2>&1; then
