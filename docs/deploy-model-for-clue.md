@@ -69,7 +69,7 @@ For compact models, weights are exported by `scripts/export_compact_weights_for_
 ```
 
 The script will:
-1. Validate `metadata.json` against the JSON Schema (requires `npm install` in `explainer-app/`)
+1. Validate `metadata.json` against the JSON Schema (uses `scripts/validate-metadata.py`; requires `jsonschema` from `requirements.txt`)
 2. Check that the model doesn't already exist in S3 (to prevent accidental overwrites)
 3. Upload both files to S3 with `--content-type application/json`
 4. Print the public URLs

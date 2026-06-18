@@ -2,14 +2,15 @@
 """
 Export CompactSeismicCNN PyTorch weights to JSON for TensorFlow.js.
 
-The TF.js model is built with the same architecture in the explainer-app;
-this script saves state_dict tensors with correct transposes for conv/dense.
+The TF.js model is built with the same architecture in the benchmark app
+(`benchmark/src/lib/seismicModel.js`); this script saves state_dict tensors
+with correct transposes for conv/dense.
 
 Usage (from repo root):
   python scripts/export_compact_weights_for_tfjs.py
   python scripts/export_compact_weights_for_tfjs.py --model_path models/seismic_cnn_compact_ak_20260219_102948.pth
 
-Output: explainer-app/public/models/compact_weights.json
+Output: benchmark/public/models/compact_weights.json
 """
 
 import argparse
@@ -84,7 +85,7 @@ def main():
     parser.add_argument(
         "--output_dir",
         type=Path,
-        default=REPO_ROOT / "explainer-app" / "public" / "models",
+        default=REPO_ROOT / "benchmark" / "public" / "models",
         help="Directory to write compact_weights.json",
     )
     args = parser.parse_args()
