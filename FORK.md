@@ -21,7 +21,8 @@ option to train in this fork later.
 - `scripts/deploy-model.sh`, `scripts/validate-metadata.py` — deploy model files to S3
 - `scripts/export_compact_weights_for_tfjs.py`, `scripts/generate_dummy_weights.py` — export helpers
 - `docs/deploy-model-for-clue.md` — deploy guide
-- `models/<model-id>/` — deployed model artifacts (metadata + weights)
+- `docs/generating-model-weights.md` — how to train/export new model weights
+- `models/<model-id>/` — deployed model artifacts (metadata + weights, with a per-model README)
 - `benchmark/` — self-contained browser benchmark (uploads to a Concord Google Sheet); built and deployed to S3 on push by `.github/workflows/ci.yml`
 - `CLAUDE.md`, `.github/copilot-instructions.md` — dev ergonomics
 - `.github/workflows/ci.yml` — builds and deploys `benchmark/` to S3

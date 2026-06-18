@@ -43,7 +43,23 @@ git checkout derek/main -- \
 
 Confirm with Derek that these are the intended current versions before merging.
 
-## 4. Review and open PR(s)
+## 4. Model-weights pattern (contributed separately by Concord)
+
+So the lab can produce its own deployable models, Concord will open a separate PR
+adding the model-weights pattern:
+
+- `scripts/export_compact_weights_for_tfjs.py` — exports a trained checkpoint to
+  TensorFlow.js JSON `weights.json`.
+- `docs/generating-model-weights.md` — the train → export → assemble workflow.
+- An example `models/compact-v1/` folder (`metadata.json` + `weights.json`) as a
+  template.
+
+Concord's S3 deploy tooling (`scripts/deploy-model.sh`, `docs/deploy-model-for-clue.md`)
+is intentionally **not** contributed upstream — it is Concord infrastructure. Note
+that `models/compact-v1/metadata.json` references a CLUE-specific `$schema`; adjust
+or generalize it if the lab's models are not consumed by CLUE.
+
+## 5. Review and open PR(s)
 
 Commit on a branch and open one or more PRs for review. Concord can assist with the
 explainer-app PR if helpful.
