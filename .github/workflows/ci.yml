@@ -1,0 +1,33 @@
+name: Continuous Integration
+
+on: push
+
+jobs:
+  s3-deploy:
+    name: S3 Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - name: Generate standard dummy weights
+        run: pip install numpy && python scripts/generate_dummy_weights.py --model standard
+      - name: Install Dependencies
+        working-directory: explainer-app
+        run: npm ci
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::612297603577:role/tiny-cnn-seismicML
+          aws-region: us-east-1
+      - uses: concord-consortium/s3-deploy-action@v1
+        with:
+          bucket: models-resources
+          prefix: tiny-cnn-seismicML
+          workingDirectory: explainer-app
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          deployRunUrl: https://models-resources.concord.org/tiny-cnn-seismicML/__deployPath__/index.html
+          topBranches: |
+            ["main"]
