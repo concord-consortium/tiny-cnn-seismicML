@@ -16,7 +16,7 @@ jobs:
       - name: Generate standard dummy weights
         run: pip install numpy && python scripts/generate_dummy_weights.py --model standard
       - name: Install Dependencies
-        working-directory: explainer-app
+        working-directory: benchmark
         run: npm ci
       - uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -26,7 +26,7 @@ jobs:
         with:
           bucket: models-resources
           prefix: tiny-cnn-seismicML
-          workingDirectory: explainer-app
+          workingDirectory: benchmark
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           deployRunUrl: https://models-resources.concord.org/tiny-cnn-seismicML/__deployPath__/index.html
           topBranches: |

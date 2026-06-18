@@ -17,7 +17,7 @@ from pathlib import Path
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-MODELS_DIR = REPO_ROOT / "explainer-app" / "public" / "models"
+MODELS_DIR = REPO_ROOT / "benchmark" / "public" / "models"
 
 
 def _add_conv_bn(out, rng, conv_name, bn_name, kernel_size, in_ch, out_ch):
